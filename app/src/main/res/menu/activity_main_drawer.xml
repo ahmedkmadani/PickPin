@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:layout_width="match_parent"
+            android:icon="@drawable/ic_baseline_home_24px"
+            android:title="Home" />
+        <item
+            android:id="@+id/nav_feed"
+            android:icon="@drawable/ic_baseline_rss_feed_24px"
+            android:title="Feeds" />
+        <item
+            android:id="@+id/nav_photo"
+            android:icon="@drawable/ic_baseline_collections_24px"
+            android:title="My Photos" />
+        <item
+            android:id="@+id/nav_find_people"
+            android:icon="@drawable/ic_baseline_person_add_24px"
+            android:title="Find People" />
+
+        <item
+            android:id="@+id/nav_notification"
+            android:icon="@drawable/ic_baseline_notifications_24px"
+            android:title="Notification" />
+
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_baseline_person_24px"
+            android:title="Profile" />
+    </group>
+
+    <item android:title="Other">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_baseline_share_24px"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_setting"
+                android:icon="@drawable/ic_baseline_settings_20px"
+                android:title="Setting" />
+
+            <item
+                android:id="@+id/nav_about_us"
+                android:icon="@drawable/ic_baseline_help_24px"
+                android:title="About Us" />
+        </menu>
+    </item>
+
+</menu>
