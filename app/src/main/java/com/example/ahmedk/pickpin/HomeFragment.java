@@ -13,7 +13,9 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,11 +23,18 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.ClusterManager;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public  class HomeFragment extends Fragment {
+public  class HomeFragment extends Fragment implements ClusterManager.OnClusterItemInfoWindowClickListener<PinsItem> {
+
+    private ClusterManager<PinsItem> mClusterManager;
+    private PinsItem clusterItem;
+    private GoogleMap mMap;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -34,17 +43,9 @@ public  class HomeFragment extends Fragment {
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onMapReady(GoogleMap mMap) {
-
-                LatLng sydney = new LatLng(-34, 151);
-
-                mMap.addMarker(new MarkerOptions()
-                        .position(sydney)
-                        .icon(BitmapDescriptorFactory.fromBitmap(
-                                CreateCustomMarker(getActivity(), R.drawable.ahmedk, "Ahmed K Madani"))));
-
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
+            public void onMapReady(GoogleMap googleMap) {
+                mMap = googleMap;
+                setUpCluster();
 
             }
         });
@@ -52,27 +53,79 @@ public  class HomeFragment extends Fragment {
         return view;
     }
 
-    private Bitmap CreateCustomMarker(FragmentActivity activity, int resource, String _name) {
+    private void setUpCluster() {
 
-        View marker = ((LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(22.7483221, 72.88330078), 5));
+        mClusterManager = new ClusterManager<PinsItem>(getActivity(), mMap);
 
-        CircleImageView markerImage = (CircleImageView) marker.findViewById(R.id.user_dp);
-        markerImage.setImageResource(resource);
-        TextView text_name = (TextView) marker.findViewById(R.id.name);
-        text_name.setText(_name);
+        mMap.setOnCameraIdleListener(mClusterManager);
+        mMap.setOnMarkerClickListener(mClusterManager);
 
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity) activity).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        marker.setLayoutParams(new ViewGroup.LayoutParams(52, ViewGroup.LayoutParams.WRAP_CONTENT));
-        marker.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
-        marker.layout(0, 0, displayMetrics.widthPixels, displayMetrics.widthPixels);
-        marker.buildDrawingCache();
-        Bitmap bitmap = Bitmap.createBitmap(marker.getMeasuredWidth(), marker.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        marker.draw(canvas);
+        mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
 
-        return bitmap;
+        mClusterManager
+                .setOnClusterItemClickListener(new ClusterManager.OnClusterItemClickListener<PinsItem>() {
+                    @Override
+                    public boolean onClusterItemClick(PinsItem item) {
+                        clusterItem = item;
+                        return false;
+                    }
+                });
+
+
+        addItems();
+
+        mClusterManager.getMarkerCollection().setOnInfoWindowAdapter(
+                new MarkerAdapter());
+        addItems();
     }
+
+    private void addItems() {
+
+        for (int i = 0; i < Pins.latitude.length; i++) {
+
+            PinsItem offsetItem = new PinsItem(Pins.latitude[i], Pins.longitude[i], Pins.name[i]);
+            mClusterManager.addItem(offsetItem);
+        }
+    }
+
+    //added with edit
+    @Override
+    public void onClusterItemInfoWindowClick(PinsItem pinsItem) {
+        Toast.makeText(getActivity(), pinsItem.getName() + " Clicked", Toast.LENGTH_SHORT).show();
+    }
+
+    public class MarkerAdapter implements GoogleMap.InfoWindowAdapter {
+
+        private final View PinsView;
+
+        MarkerAdapter() {
+              PinsView = getLayoutInflater().inflate(
+                    R.layout.custom_marker_layout, null);
+
+
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+
+            TextView name = ((TextView) PinsView
+                    .findViewById(R.id.name));
+            ImageView user_dp = ((ImageView) PinsView
+                    .findViewById(R.id.user_dp));
+
+            name.setText(clusterItem.getName());
+            user_dp.setImageResource(R.drawable.ahmedk);
+
+            return PinsView;
+        }
+    }
+
 }
 
 
