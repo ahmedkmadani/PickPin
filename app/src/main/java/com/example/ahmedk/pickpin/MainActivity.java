@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-
+        HomeFragment();
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
