@@ -11,6 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Canvas;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -24,6 +26,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +34,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -51,15 +60,12 @@ import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.io.ByteArrayOutputStream;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 public  class HomeFragment extends Fragment implements ClusterManager.OnClusterItemInfoWindowClickListener<PinsItem> {
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1888;
     private ClusterManager<PinsItem> mClusterManager;
     private PinsItem clusterItem;
     private GoogleMap mMap;
-
 
     @Nullable
     @Override
@@ -72,7 +78,7 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                Snackbar.make(view, "Starting Camera", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 requestCameraPermission();
             }
         });
@@ -152,6 +158,7 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE){
             if (resultCode == Activity.RESULT_OK){
+                
                 Bitmap bmp = (Bitmap) data.getExtras().get("data");
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
@@ -159,10 +166,10 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
                 byte[] byteArray = stream.toByteArray();
 
                 Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray,0, byteArray.length);
-
             }
         }
     }
+
 
     private void setUpCluster() {
 
@@ -206,6 +213,7 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
         Toast.makeText(getActivity(), pinsItem.getName() + " Clicked", Toast.LENGTH_SHORT).show();
     }
 
+
     public class MarkerAdapter implements GoogleMap.InfoWindowAdapter {
 
         private final View PinsView;
@@ -213,8 +221,6 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
         MarkerAdapter() {
               PinsView = getLayoutInflater().inflate(
                     R.layout.custom_marker_layout, null);
-
-
         }
 
         @Override

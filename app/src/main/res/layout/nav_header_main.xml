@@ -12,7 +12,7 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <de.hdodenhof.circleimageview.CircleImageView
+    <com.mikhaellopez.circularimageview.CircularImageView
         android:id="@+id/imageView"
         android:layout_width="72dp"
         android:layout_height="72dp"
@@ -20,13 +20,14 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:src="@drawable/ahmedk"
         android:layout_gravity="center"
-        />
+        app:civ_border_color="@android:color/white"
+        app:civ_border_width="2dp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="@string/nav_header_title"
+        android:text="@string/profile_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:gravity="center"/>
 
