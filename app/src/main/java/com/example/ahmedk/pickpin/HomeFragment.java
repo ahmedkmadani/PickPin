@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.net.Uri;
@@ -48,10 +49,13 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.PermissionRequestErrorListener;
 import com.karumi.dexter.listener.single.PermissionListener;
 
+import java.io.ByteArrayOutputStream;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public  class HomeFragment extends Fragment implements ClusterManager.OnClusterItemInfoWindowClickListener<PinsItem> {
 
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1888;
     private ClusterManager<PinsItem> mClusterManager;
     private PinsItem clusterItem;
     private GoogleMap mMap;
@@ -68,8 +72,7 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 requestCameraPermission();
             }
         });
@@ -140,7 +143,25 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
     }
 
     private void OpenCamera() {
-        Toast.makeText(getActivity(), "Open Camera ", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getActivity(), "Open Camera ", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent,CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE){
+            if (resultCode == Activity.RESULT_OK){
+                Bitmap bmp = (Bitmap) data.getExtras().get("data");
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                byte[] byteArray = stream.toByteArray();
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray,0, byteArray.length);
+
+            }
+        }
     }
 
     private void setUpCluster() {
