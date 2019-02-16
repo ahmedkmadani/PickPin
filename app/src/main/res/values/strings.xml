@@ -26,4 +26,13 @@
     <string name="dialog_permission_title">Grant Permissions</string>
     <string name="dialog_permission_message">This app needs permission to use this feature. You can grant them in app settings.</string>
     <string name="go_to_settings">GOTO SETTINGS</string>
+
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_forgot_password">Forgot your password?</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_login_fb">Login with Facebook</string>
+    <string name="btn_login_tw">Login with Twitter</string>
+    <string name="btn_login_gm">Login with Gmail</string>
+    <string name="btn_link_to_register">Don\'t have an account? SignUp</string>
 </resources>
