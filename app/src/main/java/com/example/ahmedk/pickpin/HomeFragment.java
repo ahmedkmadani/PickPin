@@ -14,6 +14,7 @@ import android.graphics.Canvas;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -50,15 +51,22 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterManager;
 import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.DexterError;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.PermissionRequestErrorListener;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 public  class HomeFragment extends Fragment implements ClusterManager.OnClusterItemInfoWindowClickListener<PinsItem> {
 
@@ -66,6 +74,7 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
     private ClusterManager<PinsItem> mClusterManager;
     private PinsItem clusterItem;
     private GoogleMap mMap;
+    LocationTrack locationTrack;
 
     @Nullable
     @Override
@@ -74,12 +83,13 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
+        locationTrack = new LocationTrack(getActivity());
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Snackbar.make(view, "Starting Camera", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                requestCameraPermission();
+                requestAllPermission();
             }
         });
 
@@ -93,32 +103,6 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
         });
 
         return view;
-    }
-
-    private void requestCameraPermission() {
-        Dexter.withActivity(getActivity()).withPermission(Manifest.permission.CAMERA).withListener(new PermissionListener() {
-            @Override
-            public void onPermissionGranted(PermissionGrantedResponse response) {
-                OpenCamera();
-            }
-
-            @Override
-            public void onPermissionDenied(PermissionDeniedResponse response) {
-                if(response.isPermanentlyDenied()){
-                    ShowSettingsDialog();
-                }
-            }
-
-            @Override
-            public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
-                token.cancelPermissionRequest();
-            }
-        }).withErrorListener(new PermissionRequestErrorListener() {
-            @Override
-            public void onError(DexterError error) {
-                Toast.makeText(getActivity(), "Error occurred! ", Toast.LENGTH_SHORT).show();
-            }
-        }).onSameThread().check();
     }
 
     private void ShowSettingsDialog() {
@@ -166,8 +150,59 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
                 byte[] byteArray = stream.toByteArray();
 
                 Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray,0, byteArray.length);
+
+                getCurrentLocation();
             }
         }
+    }
+
+    private void requestAllPermission() {
+        Dexter.withActivity(getActivity())
+                .withPermissions(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        if (report.areAllPermissionsGranted()) {
+                            Toast.makeText(getActivity(), "All permissions are granted!", Toast.LENGTH_SHORT).show();
+                            OpenCamera();
+                        }
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            ShowSettingsDialog();
+                            locationTrack.showSettingsAlert();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).
+                withErrorListener(new PermissionRequestErrorListener() {
+                    @Override
+                    public void onError(DexterError error) {
+                        Toast.makeText(getActivity(), "Error occurred! ", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .onSameThread()
+                .check();
+    }
+
+
+    private void getCurrentLocation() {
+
+        if (locationTrack.canGetLocation()) {
+
+            double longitude = locationTrack.getLongitude();
+            double latitude = locationTrack.getLatitude();
+
+            Toast.makeText(getActivity(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();
+        } else {
+
+            locationTrack.showSettingsAlert();
+        }
+
     }
 
 
@@ -190,7 +225,6 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
                     }
                 });
 
-
         addItems();
 
         mClusterManager.getMarkerCollection().setOnInfoWindowAdapter(
@@ -201,7 +235,6 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
     private void addItems() {
 
         for (int i = 0; i < Pins.latitude.length; i++) {
-
             PinsItem offsetItem = new PinsItem(Pins.latitude[i], Pins.longitude[i], Pins.name[i]);
             mClusterManager.addItem(offsetItem);
         }
@@ -242,7 +275,6 @@ public  class HomeFragment extends Fragment implements ClusterManager.OnClusterI
             return PinsView;
         }
     }
-
 }
 
 
